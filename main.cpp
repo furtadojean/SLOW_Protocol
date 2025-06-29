@@ -31,7 +31,7 @@ enum SLOWFlags {
 
 bool debug = true;
 
-UUID generate_uuidv8() {
+UUID generate_uuid() {
     UUID uuid{};
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -44,19 +44,6 @@ UUID generate_uuidv8() {
     // Set variant to 0b10 in byte 8 (bits 6–7)
     uuid[8] = (uuid[8] & 0x3F) | 0x80;
 
-    return uuid;
-}
-
-
-UUID generate_uuid() {
-    return generate_uuidv8();
-
-    UUID uuid{};
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    for (int i = 0; i < 16; ++i) uuid[i] = gen() & 0xFF;
-    uuid[6] = (uuid[6] & 0x0F) | 0x80;
-    uuid[8] = (uuid[8] & 0x3F) | 0x80;
     return uuid;
 }
 
