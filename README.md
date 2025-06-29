@@ -55,7 +55,7 @@ Recebe pacotes do servidor e armazena dados recebidos em buffer local, respeitan
 ### 7. `print_packet_info`
 Imprime o conteúdo detalhado de um pacote, útil para depuração e validação dos campos do protocolo.
 
-### 8. `generate_uuidv8`
+### 8. `generate_uuid`
 Gera um UUID (identificador único universal) da versão 8 conforme especificado no protocolo.
 
 Como funciona:
