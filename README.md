@@ -6,7 +6,8 @@ Este projeto implementa um cliente para o protocolo SLOW, conforme especificaç�
 
 ### 1. `create_socket`
 Cria e configura um socket UDP, já associado ao endereço local e preparado para comunicação com o servidor central do protocolo SLOW.
-**Como funciona:**
+
+Como funciona:
 - Inicializa o socket UDP.
 - Preenche a estrutura do endereço do servidor.
 - Faz o bind em uma porta efêmera local.
@@ -20,7 +21,8 @@ Monta um pacote SLOW conforme o formato especificado:
 - 2 bytes para janela
 - 1 byte FID (fragment id) e 1 byte FO (fragment offset)
 - Dados (opcional)
-**Como funciona:**
+
+Como funciona:
 - Organiza os campos no vetor de bytes, cuidando do alinhamento e codificação bit a bit onde necessário.
 
 ### 3. `send_3way_connect`
