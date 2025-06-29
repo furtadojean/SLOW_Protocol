@@ -1,6 +1,10 @@
-# README - Cliente SLOW (Protocolo UDP Confiável)
+# Protocolo SLOW
 
 Este projeto implementa um cliente para o protocolo SLOW, conforme especificação do trabalho, fornecendo comunicação confiável sobre UDP, com controle de sessão, fragmentação, controle de janela e retransmissão.
+
+## Integrantes
+- Jean Michel Furtado M'Peko
+- Thiago Prado Dalla Dea
 
 ## Funções Implementadas
 
@@ -50,6 +54,15 @@ Recebe pacotes do servidor e armazena dados recebidos em buffer local, respeitan
 
 ### 7. `print_packet_info`
 Imprime o conteúdo detalhado de um pacote, útil para depuração e validação dos campos do protocolo.
+
+### 8. `generate_uuidv8`
+Gera um UUID (identificador único universal) da versão 8 conforme especificado no protocolo.
+
+Como funciona:
+- Utiliza um gerador de números aleatórios (Mersenne Twister) para preencher os 16 bytes do UUID
+- Define os bits de versão (byte 6, bits 4-7) para o valor 8 (`1000` em binário)
+- Define os bits de variante (byte 8, bits 6-7) para `0b10`, indicando a variante RFC 4122
+- Garante compatibilidade com o formato UUID padrão usado para identificação de sessões no protocolo
 
 ## Exemplo de Uso
 
