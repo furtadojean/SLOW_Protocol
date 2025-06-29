@@ -31,20 +31,6 @@ enum SLOWFlags {
 
 bool debug = true;
 
-template <typename T>
-T reverse_bits(T value) {
-    return value;
-    T result = 0;
-    int n = sizeof(T) * 8;
-    for (int i = 0; i < n; ++i) {
-        result <<= 1;
-        result |= (value & 1);
-        value >>= 1;
-    }
-    return result;
-}
-
-
 UUID generate_uuidv8() {
     UUID uuid{};
     std::random_device rd;
@@ -118,7 +104,7 @@ void print_packet_info(const std::vector<uint8_t>& packet, const std::string& la
                          | (packet[18] << 11)                // bits 11–18
                          | (packet[19] << 19);               // bits 19–26
 
-    uint32_t sttl = reverse_bits<uint32_t>(sttl_packed << 5); // align left, reverse bits, then shift back
+    uint32_t sttl = sttl_packed << 5; // align left, reverse bits, then shift back
     sttl >>= 5;  // shift back to original 27-bit position
 
     std::cout << "STTL: " << sttl << " ms\n";
@@ -129,15 +115,15 @@ void print_packet_info(const std::vector<uint8_t>& packet, const std::string& la
     uint32_t seqnum, acknum;
     memcpy(&seqnum, &packet[20], 4);
     memcpy(&acknum, &packet[24], 4);
-    seqnum = reverse_bits(seqnum);
-    acknum = reverse_bits(acknum);
+    seqnum = seqnum;
+    acknum = acknum;
 
     uint16_t window;
     memcpy(&window, &packet[28], 2);
-    window = reverse_bits(window);
+    window = window;
 
-    uint8_t fid = reverse_bits(packet[30]);
-    uint8_t fo  = reverse_bits(packet[31]);
+    uint8_t fid = packet[30];
+    uint8_t fo  = packet[31];
 
     std::cout << "SeqNum: " << seqnum << ", AckNum: " << acknum << ", Window: " << window << "\n";
     std::cout << "FID: " << (int)fid << ", FO: " << (int)fo << "\n";
@@ -181,7 +167,7 @@ std::vector<uint8_t> build_packet(UUID sid,
     packet[16] = flags_byte;
 
     // ✅ Bit-level little endian for 27-bit sttl
-    uint32_t sttl_reversed = reverse_bits<uint32_t>(sttl) >> 5;  // keep only 27 bits
+    uint32_t sttl_reversed = sttl >> 5;  // keep only 27 bits
 
     // Place lower 3 bits of sttl in bits 5–7 of packet[16]
     packet[16] |= ((sttl_reversed & 0x07) << 5);
@@ -192,16 +178,16 @@ std::vector<uint8_t> build_packet(UUID sid,
     packet[19] = (sttl_reversed >> 19) & 0xFF;
 
     // ✅ Multi-byte fields: bit-level little endian
-    uint32_t seqnum_rev = reverse_bits(seqnum);
-    uint32_t acknum_rev = reverse_bits(acknum);
-    uint16_t window_rev = reverse_bits(window);
+    uint32_t seqnum_rev = seqnum;
+    uint32_t acknum_rev = acknum;
+    uint16_t window_rev = window;
 
     memcpy(&packet[20], &seqnum_rev, 4);
     memcpy(&packet[24], &acknum_rev, 4);
     memcpy(&packet[28], &window_rev, 2);
 
-    packet[30] = reverse_bits(fid);
-    packet[31] = reverse_bits(fo);
+    packet[30] = fid;
+    packet[31] = fo;
 
     std::copy(data.begin(), data.end(), packet.begin() + HEADER_SIZE);
     return packet;
@@ -353,7 +339,7 @@ bool send_data(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uint32_t&
             if (debug) print_packet_info(resp, "RECEIVED: " + label);
             uint32_t recv_acknum;
             memcpy(&recv_acknum, &resp[24], 4);
-            recv_acknum = reverse_bits(recv_acknum);
+            recv_acknum = recv_acknum;
             if (recv_acknum > last_ack) {
                 last_ack = recv_acknum;
                 while (!inflight.empty() && inflight.front().seq <= recv_acknum) inflight.pop_front();
@@ -361,7 +347,7 @@ bool send_data(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uint32_t&
 
             uint16_t recv_window;
             memcpy(&recv_window, &resp[28], 2);
-            remote_window = reverse_bits(recv_window);
+            remote_window = recv_window;
             memcpy(&acknum, &last_ack, 4);
         } else {
             if (!inflight.empty()) {
@@ -374,7 +360,7 @@ bool send_data(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uint32_t&
     return true;
 }
 
-void send_disconnect(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uint32_t seqnum, uint32_t acknum) {
+void send_disconnect(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uint32_t& seqnum, uint32_t& acknum) {
     uint8_t flags = CONNECT | REVIVE | ACK;
     auto pkt = build_packet(sid, flags, sttl, seqnum, acknum, 0, 0, 0, {});
     if (debug) print_packet_info(pkt, "SENT: DISCONNECT");
@@ -384,8 +370,9 @@ void send_disconnect(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uin
     if (receive_response(sock, response)) {
         if (debug) print_packet_info(response, "RECEIVED: FINAL ACK");
         memcpy(&acknum, &response[24], 4);
-        acknum = reverse_bits(acknum);
+        acknum = acknum;
     }
+    seqnum += 1;
 }
 
 int main() {
@@ -408,7 +395,7 @@ int main() {
     send_data(sock, server, session_id, 3000, seqnum, last_ack, payload, ACK, "DATA");
 
     std::cout << "[*] Enviando disconnect...\n";
-    send_disconnect(sock, server, session_id, 3000, seqnum, seqnum - 1);
+    send_disconnect(sock, server, session_id, 3000, seqnum, last_ack);
 
     std::cout << "[*] Esperando antes de enviar novos dados via 0-way...\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -418,7 +405,7 @@ int main() {
     send_data(sock, server, session_id, 3000, seqnum, last_ack, nova_payload, ACK | REVIVE, "0-WAY DATA");
 
     std::cout << "[*] Enviando disconnect...\n";
-    send_disconnect(sock, server, session_id, 3000, seqnum, seqnum - 1);
+    send_disconnect(sock, server, session_id, 3000, seqnum, last_ack);
 
     close(sock);
     std::cout << "[✓] Finalizado.\n";
