@@ -59,7 +59,7 @@ Imprime o conteúdo detalhado de um pacote, útil para depuração e validação
 Gera um UUID (identificador único universal) da versão 8 conforme especificado no protocolo.
 
 Como funciona:
-- Utiliza um gerador de números aleatórios (Mersenne Twister) para preencher os 16 bytes do UUID
+- Define valores fixos para custom_a, custom_b e custom_c
 - Define os bits de versão (byte 6, bits 4-7) para o valor 8 (`1000` em binário)
 - Define os bits de variante (byte 8, bits 6-7) para `0b10`, indicando a variante RFC 4122
 - Garante compatibilidade com o formato UUID padrão usado para identificação de sessões no protocolo
