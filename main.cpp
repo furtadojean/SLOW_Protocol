@@ -160,14 +160,14 @@ std::vector<uint8_t> build_packet(UUID sid, uint8_t flags, uint32_t sttl,
 int create_socket(struct sockaddr_in& server) {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
-        std::cerr << "socket creation failed: " << strerror(errno) << std::endl;
+        std::cerr << "criação de socket falhou: " << strerror(errno) << std::endl;
         return -1;
     }
 
     server.sin_family = AF_INET;
     server.sin_port = htons(PORT);
     if (inet_pton(AF_INET, CENTRAL_IP, &server.sin_addr) != 1) {
-        std::cerr << "inet_pton failed for server IP" << std::endl;
+        std::cerr << "inet_pton falhou para o IP do servidor" << std::endl;
         close(sock);
         return -1;
     }
@@ -178,7 +178,7 @@ int create_socket(struct sockaddr_in& server) {
     local_addr.sin_port = 0;
 
     if (bind(sock, (struct sockaddr*)&local_addr, sizeof(local_addr)) == -1) {
-        std::cerr << "bind failed: " << strerror(errno) << std::endl;
+        std::cerr << "bind falhou: " << strerror(errno) << std::endl;
         close(sock);
         return -1;
     }
@@ -315,38 +315,38 @@ bool send_3way_connect(int sock, sockaddr_in& server, UUID& session_id, uint32_t
     auto pkt = build_packet(nil_uuid(), CONNECT, 0, 0, 0, LOCAL_RECV_BUF_CAPACITY, 0, 0, {});
     if (debug) print_packet_info(pkt, "SENT: CONNECT");
 
-    // Check if socket is valid (non-negative)
+    // Checa se o socket é válido (não-negativo)
     if (sock < 0) {
-        std::cerr << "Error: Invalid socket descriptor " << sock << std::endl;
+        std::cerr << "Erro: Descritor de socket inválido " << sock << std::endl;
         return false;
     }
 
-    // Check and print local socket address
+    // Checa e printa o endereço local do socket
     struct sockaddr_in local_addr;
     socklen_t addr_len = sizeof(local_addr);
     if (getsockname(sock, (struct sockaddr*)&local_addr, &addr_len) == -1) {
-        std::cerr << "Warning: getsockname failed: " << strerror(errno) << std::endl;
+        std::cerr << "Aviso: getsockname falhou: " << strerror(errno) << std::endl;
     } else {
         char local_ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &local_addr.sin_addr, local_ip_str, sizeof(local_ip_str));
-        std::cout << "Socket bound to local address " << local_ip_str << ":" << ntohs(local_addr.sin_port) << std::endl;
+        std::cout << "Socket vinculado ao endereço local " << local_ip_str << ":" << ntohs(local_addr.sin_port) << std::endl;
     }
 
-    // Print server (destination) address
+    // Print endereço de destino/servidor
     char server_ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &server.sin_addr, server_ip_str, sizeof(server_ip_str));
-    std::cout << "Server address is " << server_ip_str << ":" << ntohs(server.sin_port) << std::endl;
+    std::cout << "Endereço do servidor é " << server_ip_str << ":" << ntohs(server.sin_port) << std::endl;
 
-    // Send packet
+    // Manda o pacote
     ssize_t sent_bytes = sendto(sock, pkt.data(), pkt.size(), 0, (sockaddr*)&server, sizeof(server));
     if (sent_bytes == -1) {
-        std::cerr << "sendto failed: " << strerror(errno) << std::endl;
+        std::cerr << "sendto falhou: " << strerror(errno) << std::endl;
         return false;
     }
     if (sent_bytes < (ssize_t)pkt.size()) {
-        std::cerr << "Warning: sendto sent fewer bytes (" << sent_bytes << ") than packet size (" << pkt.size() << ")" << std::endl;
+        std::cerr << "Aviso: sendto mandou menos bytes (" << sent_bytes << ") que o tamanho do pacote (" << pkt.size() << ")" << std::endl;
     } else {
-        if (debug) std::cout << "sendto succeeded, sent " << sent_bytes << " bytes" << std::endl;
+        if (debug) std::cout << "sendto funcionou, mandou " << sent_bytes << " bytes" << std::endl;
     }
 
     std::vector<uint8_t> response;
@@ -365,7 +365,7 @@ bool send_3way_connect(int sock, sockaddr_in& server, UUID& session_id, uint32_t
 
 // Envia mensagem de desconexão e espera ACK final para atualizar acknum
 void send_disconnect(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uint32_t& seqnum, uint32_t& acknum) {
-    uint8_t flags = CONNECT | REVIVE | ACK;  // Flags típicas para desconectar
+    uint8_t flags = CONNECT | REVIVE | ACK;  // Flags para desconectar
     auto pkt = build_packet(sid, flags, sttl, seqnum, acknum, 0, 0, 0, {});
     if (debug) print_packet_info(pkt, "SENT: DISCONNECT");
     sendto(sock, pkt.data(), pkt.size(), 0, (sockaddr*)&server, sizeof(server));
@@ -379,6 +379,7 @@ void send_disconnect(int sock, sockaddr_in& server, UUID sid, uint32_t sttl, uin
 }
 
 
+// Teste
 int main() {
     sockaddr_in server{};
     int sock = create_socket(server);

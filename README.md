@@ -19,9 +19,9 @@ Como funciona:
 ### 2. `build_packet`
 Monta um pacote SLOW conforme o formato especificado:
 - 16 bytes de UUID de sessão
-- 1 byte de flags
+- 5 bits de flags
 - 27 bits de STTL (timeout)
-- 4 bytes para SeqNum e AckNum
+- 4 bytes para SeqNum e 4 bytes para AckNum
 - 2 bytes para janela
 - 1 byte FID (fragment id) e 1 byte FO (fragment offset)
 - Dados (opcional)
@@ -53,16 +53,19 @@ Finaliza a sessão com o servidor:
 Recebe pacotes do servidor e armazena dados recebidos em buffer local, respeitando o limite de capacidade do protocolo.
 
 ### 7. `print_packet_info`
-Imprime o conteúdo detalhado de um pacote, útil para depuração e validação dos campos do protocolo.
+Imprime o conteúdo detalhado de um pacote (útil para depuração e validação dos campos do protocolo).
 
 ### 8. `generate_uuid`
-Gera um UUID (identificador único universal) da versão 8 conforme especificado no protocolo.
+Gera um UUID (identificador único universal) da versão 8 conforme especificado.
 
 Como funciona:
 - Define valores fixos para custom_a, custom_b e custom_c
 - Define os bits de versão (byte 6, bits 4-7) para o valor 8 (`1000` em binário)
-- Define os bits de variante (byte 8, bits 6-7) para `0b10`, indicando a variante RFC 4122
+- Define os bits de variante (byte 8, bits 6-7) para `0b10`, de acordo com a RFC 9562
 - Garante compatibilidade com o formato UUID padrão usado para identificação de sessões no protocolo
+
+### 9. `nil_uuid`
+Retorna um UUID nulo.
 
 ## Exemplo de Uso
 
