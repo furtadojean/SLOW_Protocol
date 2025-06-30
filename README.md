@@ -1,6 +1,8 @@
 # Protocolo SLOW
 
 Este projeto implementa um cliente para o protocolo SLOW, conforme especificação do trabalho, fornecendo comunicação confiável sobre UDP, com controle de sessão, fragmentação, controle de janela e retransmissão.
+![slow_protocol](https://github.com/user-attachments/assets/fc8692c5-9820-4891-989d-a87973131f60)
+
 
 ## Integrantes
 - Jean Michel Furtado M'Peko
